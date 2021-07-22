@@ -73,11 +73,14 @@ spec:
     canary:
       stableService: realtimeapp-stable
       canaryService: realtimeapp-canary
-      #trafficRouting:
-        #nginx:
-          #stableIngress: realtimeapp-ingress
+      trafficRouting:
+        nginx:
+          stableIngress: realtimeapp-ingress
       steps:
-      - setWeight: 50
+      - setWeight: 20
+      - pause:
+          duration: "1m"
+      - setWeight: 60
       - pause: {}
 ---
 apiVersion: v1
@@ -106,7 +109,7 @@ spec:
   selector:
     app: realtime
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: realtimeapp-ingress
@@ -116,10 +119,13 @@ metadata:
     nginx.ingress.kubernetes.io/affinity-mode: persistent
 spec:
   rules:
-  - host: real.baeke.info
-    http:
-      paths:
-      - path: /
-        backend:
-          serviceName: realtimeapp-stable
-          servicePort: 80
+    - host: demo.nip.io
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: realtimeapp-stable
+              port:
+                number: 80
